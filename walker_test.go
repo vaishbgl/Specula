@@ -78,6 +78,23 @@ func TestWalk_SkipsHiddenDirs(t *testing.T) {
 	}
 }
 
+func TestWalk_IncludesGitHubWorkflows(t *testing.T) {
+	dir := t.TempDir()
+	workflowDir := filepath.Join(dir, ".github", "workflows")
+	if err := os.MkdirAll(workflowDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, workflowDir, "ci.yml", "name: CI\n")
+
+	result, err := Walk(dir, DefaultWalkOptions())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Stats.FilesScanned != 1 || result.Files[0].Path != ".github/workflows/ci.yml" {
+		t.Fatalf("GitHub workflow was not scanned: %+v", result.Files)
+	}
+}
+
 func TestWalk_SkipsBinaryFiles(t *testing.T) {
 	dir := t.TempDir()
 

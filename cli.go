@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 )
@@ -47,6 +48,7 @@ func parseArgs(args []string) (Config, error) {
 // parseLintArgs parses flags for the lint subcommand.
 func parseLintArgs(args []string) (Config, error) {
 	fs := flag.NewFlagSet("lint", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
 
 	cfg := Config{Command: "lint"}
 
@@ -59,12 +61,13 @@ func parseLintArgs(args []string) (Config, error) {
 	// Custom flag for --fail-under since it needs int parsing
 	failUnderStr := fs.String("fail-under", "0", "Exit code 1 if grade score < n")
 
-	// Customize usage
-	fs.Usage = func() {
-		printLintUsage()
-	}
+	// main prints the usage text for --help after parsing succeeds.
+	fs.Usage = func() {}
 
 	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return Config{Command: "lint-help"}, nil
+		}
 		return Config{}, err
 	}
 
@@ -90,6 +93,12 @@ func parseLintArgs(args []string) (Config, error) {
 	if len(remaining) == 0 {
 		return Config{}, fmt.Errorf("lint requires a target path, e.g.: specula lint .")
 	}
+	if len(remaining) > 1 {
+		return Config{}, fmt.Errorf("lint accepts exactly one target path")
+	}
+	if cfg.Module != "" && !isValidModule(cfg.Module) {
+		return Config{}, fmt.Errorf("unknown module %q (valid: security, deps, tests, code, docs, setup)", cfg.Module)
+	}
 	cfg.Target = remaining[0]
 
 	return cfg, nil
@@ -97,7 +106,7 @@ func parseLintArgs(args []string) (Config, error) {
 
 // parseDiffArgs parses arguments for the diff subcommand.
 func parseDiffArgs(args []string) (Config, error) {
-	if len(args) < 2 {
+	if len(args) != 2 {
 		return Config{}, fmt.Errorf("diff requires two JSON report files, e.g.: specula diff before.json after.json")
 	}
 	// We'll store both paths in Target (before) and Output (after) for now.
@@ -107,6 +116,15 @@ func parseDiffArgs(args []string) (Config, error) {
 		Target:  args[0],
 		Output:  args[1],
 	}, nil
+}
+
+func isValidModule(name string) bool {
+	for _, module := range []string{"security", "deps", "tests", "code", "docs", "setup"} {
+		if name == module {
+			return true
+		}
+	}
+	return false
 }
 
 func printLintUsage() {

@@ -3,7 +3,6 @@ specula
 *.exe
 
 # Build artifacts
-deps-proof.txt
 test-results.txt
 
 # Session & Notes

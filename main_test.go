@@ -100,6 +100,30 @@ func TestParseLintArgs_MissingPath(t *testing.T) {
 	}
 }
 
+func TestParseLintArgs_Help(t *testing.T) {
+	cfg, err := parseArgs([]string{"specula", "lint", "--help"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Command != "lint-help" {
+		t.Errorf("got command %q, want lint-help", cfg.Command)
+	}
+}
+
+func TestParseLintArgs_RejectsInvalidModule(t *testing.T) {
+	_, err := parseArgs([]string{"specula", "lint", "--module", "unknown", "."})
+	if err == nil {
+		t.Fatal("expected an error for an unknown module")
+	}
+}
+
+func TestParseLintArgs_RejectsExtraPaths(t *testing.T) {
+	_, err := parseArgs([]string{"specula", "lint", ".", "other"})
+	if err == nil {
+		t.Fatal("expected an error for extra paths")
+	}
+}
+
 func TestParseLintArgs_InvalidFailUnder(t *testing.T) {
 	_, err := parseArgs([]string{"specula", "lint", "--fail-under", "abc", "."})
 	if err == nil {
@@ -131,6 +155,13 @@ func TestParseDiffArgs_MissingFiles(t *testing.T) {
 	_, err := parseArgs([]string{"specula", "diff", "only_one.json"})
 	if err == nil {
 		t.Fatal("expected error for diff with only one file, got nil")
+	}
+}
+
+func TestParseDiffArgs_RejectsExtraFiles(t *testing.T) {
+	_, err := parseArgs([]string{"specula", "diff", "before.json", "after.json", "extra.json"})
+	if err == nil {
+		t.Fatal("expected an error for extra files")
 	}
 }
 

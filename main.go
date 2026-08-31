@@ -23,6 +23,9 @@ func main() {
 	case "help":
 		printUsage()
 		os.Exit(0)
+	case "lint-help":
+		printLintUsage()
+		os.Exit(0)
 	case "version":
 		fmt.Printf("specula %s\n", version)
 		os.Exit(0)

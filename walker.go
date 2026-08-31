@@ -141,8 +141,9 @@ func Walk(root string, opts WalkOptions) (ScanResult, error) {
 				return filepath.SkipDir
 			}
 
-			// Skip hidden directories (start with .)
-			if strings.HasPrefix(name, ".") {
+			// Skip hidden directories except .github: workflow files are source
+			// configuration and must be visible to the Project Setup module.
+			if strings.HasPrefix(name, ".") && name != ".github" {
 				result.Stats.DirsSkipped++
 				return filepath.SkipDir
 			}
