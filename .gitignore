@@ -6,6 +6,9 @@ specula
 deps-proof.txt
 test-results.txt
 
+# Session & Notes
+resume.md
+
 # Go
 *.test
 *.out
