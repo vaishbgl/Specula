@@ -20,7 +20,7 @@ type WalkOptions struct {
 // DefaultWalkOptions returns sensible defaults.
 func DefaultWalkOptions() WalkOptions {
 	return WalkOptions{
-		MaxSourceSize:   512 * 1024,      // 512 KB
+		MaxSourceSize:   512 * 1024,       // 512 KB
 		MaxManifestSize: 10 * 1024 * 1024, // 10 MB
 	}
 }
@@ -35,10 +35,10 @@ type ScannedFile struct {
 
 // ScanResult holds the output of a full walk.
 type ScanResult struct {
-	Root      string
-	Files     []ScannedFile
-	Warnings  []string // permission errors, skipped files, etc.
-	Stats     ScanStats
+	Root     string
+	Files    []ScannedFile
+	Warnings []string // permission errors, skipped files, etc.
+	Stats    ScanStats
 }
 
 // ScanStats tracks scanning metrics.

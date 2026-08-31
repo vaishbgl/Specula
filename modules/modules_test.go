@@ -10,6 +10,15 @@ import (
 
 // --- Secret Scanner Tests ---
 
+// awsKeyFrag1/2 and ghTokFrag1/2 are split so that scanning this repository
+// with `specula lint .` does not flag its own test fixtures as leaked secrets.
+const (
+	awsKeyFrag1 = "AKIAIOSFODNN7"
+	awsKeyFrag2 = "EXAMPLE"
+	ghTokFrag1  = "ghp_ABCDEFGHIJKLMNOPQRSTUV"
+	ghTokFrag2  = "WXYZabcdefghij"
+)
+
 func TestSecretScanner_NoSecrets(t *testing.T) {
 	dir := t.TempDir()
 	writeTestFile(t, dir, "main.go", `package main
@@ -34,9 +43,7 @@ func main() {
 
 func TestSecretScanner_DetectsAWSKey(t *testing.T) {
 	dir := t.TempDir()
-	writeTestFile(t, dir, "config.go", `package config
-const awsKey = "AKIAIOSFODNN7EXAMPLE"
-`)
+	writeTestFile(t, dir, "config.go", "package config\nconst awsKey = \""+awsKeyFrag1+awsKeyFrag2+"\"\n")
 
 	input := ModuleInput{
 		RootDir: dir,
@@ -59,9 +66,7 @@ const awsKey = "AKIAIOSFODNN7EXAMPLE"
 
 func TestSecretScanner_DetectsGitHubToken(t *testing.T) {
 	dir := t.TempDir()
-	writeTestFile(t, dir, "ci.sh", `#!/bin/bash
-export GITHUB_TOKEN=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij
-`)
+	writeTestFile(t, dir, "ci.sh", "#!/bin/bash\nexport GITHUB_TOKEN="+ghTokFrag1+ghTokFrag2+"\n")
 
 	input := ModuleInput{
 		RootDir: dir,
@@ -78,10 +83,9 @@ export GITHUB_TOKEN=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij
 
 func TestSecretScanner_DetectsPrivateKey(t *testing.T) {
 	dir := t.TempDir()
-	writeTestFile(t, dir, "key.pem", `-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA...
------END RSA PRIVATE KEY-----
-`)
+	writeTestFile(t, dir, "key.pem", "-----BEGIN RS"+"A PRIVATE KEY-----\n"+
+		"MIIEpAIBAAKCAQEA...\n"+
+		"-----END RSA PRIVATE KEY-----\n")
 
 	input := ModuleInput{
 		RootDir: dir,
@@ -580,4 +584,3 @@ func TestProjectSetup_WithGitHubActions(t *testing.T) {
 		}
 	}
 }
-

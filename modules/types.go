@@ -33,15 +33,15 @@ type Finding struct {
 	Rule     string   `json:"rule"`
 	Severity Severity `json:"severity"`
 	Message  string   `json:"message"`
-	File     string   `json:"file,omitempty"`     // relative path
-	Line     int      `json:"line,omitempty"`     // 1-indexed
-	Detail   string   `json:"detail,omitempty"`   // extra context
+	File     string   `json:"file,omitempty"`   // relative path
+	Line     int      `json:"line,omitempty"`   // 1-indexed
+	Detail   string   `json:"detail,omitempty"` // extra context
 }
 
 // ModuleInput is the data provided to each lint module.
 type ModuleInput struct {
-	RootDir string            // absolute path to the project root
-	Files   []FileEntry       // scanned files from the walker
+	RootDir string      // absolute path to the project root
+	Files   []FileEntry // scanned files from the walker
 }
 
 // FileEntry is a minimal representation of a file for module consumption.

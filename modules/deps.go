@@ -154,18 +154,18 @@ func auditPackageJSON(file FileEntry) []Finding {
 
 	// Zero-dep opportunities
 	zeroDepReplacements := map[string]string{
-		"chalk":       "ANSI escape codes (stdlib I/O)",
-		"colors":      "ANSI escape codes (stdlib I/O)",
-		"left-pad":    "String.prototype.padStart()",
-		"is-even":     "n % 2 === 0",
-		"is-odd":      "n % 2 !== 0",
-		"is-number":   "typeof n === 'number'",
-		"rimraf":      "fs.rmSync(path, {recursive: true})",
-		"mkdirp":      "fs.mkdirSync(path, {recursive: true})",
-		"uuid":        "crypto.randomUUID()",
-		"dotenv":      "Manual .env parser (~20 lines)",
-		"lodash":      "Native Array/Object methods",
-		"underscore":  "Native Array/Object methods",
+		"chalk":      "ANSI escape codes (stdlib I/O)",
+		"colors":     "ANSI escape codes (stdlib I/O)",
+		"left-pad":   "String.prototype.padStart()",
+		"is-even":    "n % 2 === 0",
+		"is-odd":     "n % 2 !== 0",
+		"is-number":  "typeof n === 'number'",
+		"rimraf":     "fs.rmSync(path, {recursive: true})",
+		"mkdirp":     "fs.mkdirSync(path, {recursive: true})",
+		"uuid":       "crypto.randomUUID()",
+		"dotenv":     "Manual .env parser (~20 lines)",
+		"lodash":     "Native Array/Object methods",
+		"underscore": "Native Array/Object methods",
 	}
 	for name := range pkg.Dependencies {
 		if replacement, ok := zeroDepReplacements[name]; ok {

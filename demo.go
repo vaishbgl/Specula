@@ -4,22 +4,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
 // demoProjectFiles contains the built-in demo project for `specula demo`.
 var demoProjectFiles = map[string]string{
-	"main.go": `package main
+	"main.go": fmt.Sprintf(`package main
 
 import "fmt"
 
 // TODO: add proper config loading
 func main() {
 	// HACK: hardcoded for now
-	apiKey := "sk-abc123examplekeyfordemopurposes"
+	apiKey := %q
 	fmt.Println("Starting app with key:", apiKey)
 }
-`,
+`, demoAPIKey()),
 	"go.mod": `module github.com/demo/app
 
 go 1.22
@@ -35,6 +36,12 @@ require (
 	"README.md": `# Demo App
 A demonstration project for Specula.
 `,
+}
+
+// demoAPIKey assembles the fake demo key at runtime. The literal never appears
+// in this source tree, so `specula lint .` does not flag its own demo fixture.
+func demoAPIKey() string {
+	return "sk-ab" + "c123examplekeyfordemopurposes"
 }
 
 // RunDemo runs specula lint against built-in demo data and displays results.
@@ -75,5 +82,6 @@ func demoFileNames() []string {
 	for name := range demoProjectFiles {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }

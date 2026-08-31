@@ -105,9 +105,9 @@ func auditReadme(relPath, rootDir string) []Finding {
 
 	// Check for key sections
 	sections := map[string]string{
-		"install":   "installation section (install / getting started)",
-		"usage":     "usage section (usage / how to use)",
-		"licen":     "license section",
+		"install": "installation section (install / getting started)",
+		"usage":   "usage section (usage / how to use)",
+		"licen":   "license section",
 	}
 	for keyword, desc := range sections {
 		if !strings.Contains(lower, keyword) {

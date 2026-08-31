@@ -109,8 +109,8 @@ func parseDiffArgs(args []string) (Config, error) {
 	if len(args) != 2 {
 		return Config{}, fmt.Errorf("diff requires two JSON report files, e.g.: specula diff before.json after.json")
 	}
-	// We'll store both paths in Target (before) and Output (after) for now.
-	// A proper struct field will be added when diff is implemented.
+	// Before-report path goes in Target, after-report path in Output;
+	// RunDiff reads both.
 	return Config{
 		Command: "diff",
 		Target:  args[0],

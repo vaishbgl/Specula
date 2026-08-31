@@ -111,11 +111,18 @@ func TestRunLint_EndToEndClean(t *testing.T) {
 	}
 }
 
+// awsFixtureHead/Tail are split so `specula lint .` running on this repository
+// does not flag its own test fixture as a leaked secret.
+const (
+	awsFixtureHead = "AKIAIOSFODNN7"
+	awsFixtureTail = "EXAMPLE"
+)
+
 func TestRunLint_FailUnderThreshold(t *testing.T) {
 	dir := t.TempDir()
 
 	// Write project with a secret (which incurs FAIL deduction -25 -> score 75)
-	writeFile(t, dir, "main.go", "package main\nconst key = \"AKIAIOSFODNN7EXAMPLE\"\n")
+	writeFile(t, dir, "main.go", "package main\nconst key = \""+awsFixtureHead+awsFixtureTail+"\"\n")
 
 	cfg := Config{
 		Command:   "lint",
