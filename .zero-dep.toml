@@ -1,0 +1,2 @@
+track = "A"
+pitch = "A zero-dependency project linter that finds engineering-readiness problems before they ship — missing tests, possible secrets, bloated dependencies, incomplete docs — and reports findings with severity, locations, and fix suggestions. Ships as a single Go binary."

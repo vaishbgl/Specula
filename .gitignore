@@ -1,0 +1,24 @@
+# Binaries
+specula
+*.exe
+
+# Build artifacts
+deps-proof.txt
+test-results.txt
+
+# Go
+*.test
+*.out
+*.prof
+coverage.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
