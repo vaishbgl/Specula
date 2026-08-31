@@ -50,6 +50,8 @@ func RunLint(cfg Config) error {
 		{"deps", modules.RunDepsAudit},
 		{"tests", modules.RunTestReadiness},
 		{"code", modules.RunCodeQuality},
+		{"docs", modules.RunDocsCheck},
+		{"setup", modules.RunProjectSetup},
 	}
 
 	for _, m := range allModules {

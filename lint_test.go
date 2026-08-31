@@ -93,9 +93,11 @@ func TestRenderJSONReport(t *testing.T) {
 func TestRunLint_EndToEndClean(t *testing.T) {
 	dir := t.TempDir()
 
-	// Write clean minimal project
+	// Write clean minimal project including required docs
 	writeFile(t, dir, "main.go", "package main\n\nfunc main() {}\n")
 	writeFile(t, dir, "main_test.go", "package main\n\nimport \"testing\"\n\nfunc TestMain(t *testing.T) {}\n")
+	writeFile(t, dir, "README.md", strings.Repeat("word ", 120)+"\n## Installation\nRun make build.\n## Usage\nspecula lint .\n## License\nMIT\n")
+	writeFile(t, dir, "LICENSE", "MIT License")
 
 	cfg := Config{
 		Command: "lint",
@@ -137,6 +139,8 @@ func TestRunLint_SaveOutputFile(t *testing.T) {
 
 	writeFile(t, dir, "main.go", "package main\nfunc main() {}\n")
 	writeFile(t, dir, "main_test.go", "package main\nimport \"testing\"\nfunc TestX(t *testing.T){}\n")
+	writeFile(t, dir, "README.md", strings.Repeat("word ", 120)+"\n## Installation\nRun make.\n## Usage\nspecula lint .\n## License\nMIT\n")
+	writeFile(t, dir, "LICENSE", "MIT License")
 
 	cfg := Config{
 		Command: "lint",

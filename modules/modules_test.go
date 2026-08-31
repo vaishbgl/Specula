@@ -489,3 +489,95 @@ func writeTestFile(t *testing.T, dir, name, content string) {
 		t.Fatal(err)
 	}
 }
+
+// --- Docs Check Tests ---
+
+func TestDocsCheck_NoReadme(t *testing.T) {
+	input := ModuleInput{RootDir: "/fake", Files: []FileEntry{}}
+	result := RunDocsCheck(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "missing-readme" && f.Severity == SeverityFail {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected missing-readme FAIL finding")
+	}
+}
+
+func TestDocsCheck_HasReadmeAndLicense(t *testing.T) {
+	dir := t.TempDir()
+	writeTestFile(t, dir, "README.md", strings.Repeat("word ", 120)+" ## Installation\n## Usage\n## License\n")
+	writeTestFile(t, dir, "LICENSE", "MIT License")
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: "README.md", AbsPath: filepath.Join(dir, "README.md"), Size: 700},
+			{Path: "LICENSE", AbsPath: filepath.Join(dir, "LICENSE"), Size: 11},
+		},
+	}
+	result := RunDocsCheck(input)
+	for _, f := range result.Findings {
+		if f.Rule == "missing-readme" || f.Rule == "missing-license" {
+			t.Errorf("unexpected finding for complete project: %s", f.Rule)
+		}
+	}
+}
+
+func TestDocsCheck_EnvDrift(t *testing.T) {
+	dir := t.TempDir()
+	writeTestFile(t, dir, ".env.example", "DATABASE_URL=\nAPI_KEY=\nSECRET_TOKEN=\n")
+	writeTestFile(t, dir, ".env", "DATABASE_URL=postgres://localhost/db\nAPI_KEY=mykey\n")
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: ".env.example", AbsPath: filepath.Join(dir, ".env.example"), Size: 40},
+			{Path: ".env", AbsPath: filepath.Join(dir, ".env"), Size: 50},
+		},
+	}
+	result := RunDocsCheck(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "env-drift" {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected env-drift finding for missing SECRET_TOKEN in .env")
+	}
+}
+
+// --- Project Setup Tests ---
+
+func TestProjectSetup_NoCI(t *testing.T) {
+	input := ModuleInput{RootDir: "/fake", Files: []FileEntry{}}
+	result := RunProjectSetup(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "no-ci" && f.Severity == SeverityWarn {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected no-ci WARN finding")
+	}
+}
+
+func TestProjectSetup_WithGitHubActions(t *testing.T) {
+	input := ModuleInput{
+		RootDir: "/fake",
+		Files: []FileEntry{
+			{Path: ".github/workflows/ci.yml", AbsPath: "/fake/.github/workflows/ci.yml", Size: 200},
+		},
+	}
+	result := RunProjectSetup(input)
+	for _, f := range result.Findings {
+		if f.Rule == "no-ci" {
+			t.Error("should NOT report no-ci when GitHub Actions workflow exists")
+		}
+	}
+}
+
