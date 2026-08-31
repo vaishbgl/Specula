@@ -45,9 +45,8 @@ func main() {
 }
 
 // runLint orchestrates the full lint pipeline.
-// Stub — will be implemented in lint.go.
 func runLint(cfg Config) error {
-	return fmt.Errorf("lint command not yet implemented (target: %s)", cfg.Target)
+	return RunLint(cfg)
 }
 
 // runDiff compares two lint reports.

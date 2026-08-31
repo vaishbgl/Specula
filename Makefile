@@ -4,13 +4,13 @@ BINARY := specula
 VERSION := 0.1.0
 
 build:
-	go build -o $(BINARY) ./...
+	go build -o $(BINARY) .
 
 build-reproducible:
-	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-w -s -X main.version=$(VERSION)" -o $(BINARY) ./...
+	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-w -s -X main.version=$(VERSION)" -o $(BINARY) .
 
 run:
-	go run ./... --help
+	go run . --help
 
 test:
 	go test -race -v ./...
