@@ -50,15 +50,13 @@ func runLint(cfg Config) error {
 }
 
 // runDiff compares two lint reports.
-// Stub — will be implemented in diff.go.
 func runDiff(cfg Config) error {
-	return fmt.Errorf("diff command not yet implemented")
+	return RunDiff(cfg)
 }
 
 // runDemo runs lint against built-in sample data.
-// Stub — will be implemented in demo.go.
 func runDemo(cfg Config) error {
-	return fmt.Errorf("demo command not yet implemented")
+	return RunDemo(cfg)
 }
 
 func printUsage() {
