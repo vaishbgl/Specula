@@ -1,5 +1,7 @@
 // Specula — a zero-dependency project linter.
+//
 // Entry point: thin dispatch only. All logic lives in other files.
+// Errors go to stderr. Only main() calls os.Exit().
 package main
 
 import (
@@ -10,31 +12,54 @@ import (
 var version = "0.1.0"
 
 func main() {
-	if len(os.Args) < 2 {
-		printUsage()
+	cfg, err := parseArgs(os.Args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "\nRun 'specula --help' for usage.\n")
 		os.Exit(1)
 	}
 
-	cmd := os.Args[1]
-	switch cmd {
-	case "lint":
-		fmt.Fprintf(os.Stderr, "specula %s: lint command not yet implemented\n", version)
-		os.Exit(1)
-	case "diff":
-		fmt.Fprintf(os.Stderr, "specula %s: diff command not yet implemented\n", version)
-		os.Exit(1)
-	case "demo":
-		fmt.Fprintf(os.Stderr, "specula %s: demo command not yet implemented\n", version)
-		os.Exit(1)
-	case "--version", "-v":
+	switch cfg.Command {
+	case "help":
+		printUsage()
+		os.Exit(0)
+	case "version":
 		fmt.Printf("specula %s\n", version)
-	case "--help", "-h":
-		printUsage()
-	default:
-		fmt.Fprintf(os.Stderr, "specula: unknown command %q\n", cmd)
-		printUsage()
-		os.Exit(1)
+		os.Exit(0)
+	case "lint":
+		if err := runLint(cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	case "diff":
+		if err := runDiff(cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	case "demo":
+		if err := runDemo(cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
+}
+
+// runLint orchestrates the full lint pipeline.
+// Stub — will be implemented in lint.go.
+func runLint(cfg Config) error {
+	return fmt.Errorf("lint command not yet implemented (target: %s)", cfg.Target)
+}
+
+// runDiff compares two lint reports.
+// Stub — will be implemented in diff.go.
+func runDiff(cfg Config) error {
+	return fmt.Errorf("diff command not yet implemented")
+}
+
+// runDemo runs lint against built-in sample data.
+// Stub — will be implemented in demo.go.
+func runDemo(cfg Config) error {
+	return fmt.Errorf("demo command not yet implemented")
 }
 
 func printUsage() {
@@ -43,13 +68,8 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "  specula lint [flags] <path>    Lint a project directory\n")
 	fmt.Fprintf(os.Stderr, "  specula diff <a.json> <b.json> Compare two lint reports\n")
 	fmt.Fprintf(os.Stderr, "  specula demo                   Run against built-in sample data\n\n")
-	fmt.Fprintf(os.Stderr, "Flags (for lint):\n")
-	fmt.Fprintf(os.Stderr, "  --module <name>   Run a single module\n")
-	fmt.Fprintf(os.Stderr, "  --json            Output results as JSON\n")
-	fmt.Fprintf(os.Stderr, "  --output <file>   Save report to file\n")
-	fmt.Fprintf(os.Stderr, "  --fail-under <n>  Exit code 1 if score < n\n")
-	fmt.Fprintf(os.Stderr, "  --no-color        Disable colored output\n")
-	fmt.Fprintf(os.Stderr, "  --verbose         Enable debug output\n")
+	fmt.Fprintf(os.Stderr, "Run 'specula lint --help' for lint-specific flags.\n\n")
+	fmt.Fprintf(os.Stderr, "Flags:\n")
 	fmt.Fprintf(os.Stderr, "  --version, -v     Print version\n")
 	fmt.Fprintf(os.Stderr, "  --help, -h        Show this help\n")
 }
