@@ -27,8 +27,8 @@
 Before a release, every team asks the same questions: *did we leak a key? is
 the test suite real? does every dependency earn its place? does the README
 actually tell a newcomer how to run this?* Today those checks are scattered
-across different tools, or skipped entirely — 40% of leaked secrets are found
-after the fact, not before.
+across different tools — or skipped entirely until a leaked key or a broken
+release forces the conversation.
 
 Specula bundles six checks into one deterministic pass, prints a per-rule
 report you can screenshot in a PR, and exits non-zero in CI when a project
