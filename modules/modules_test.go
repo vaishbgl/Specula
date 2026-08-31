@@ -1,8 +1,10 @@
 package modules
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -296,6 +298,186 @@ pandas==1.5.3
 	}
 	if rules["unpinned-version"] == 0 {
 		t.Error("expected unpinned-version finding for requests and numpy")
+	}
+}
+
+// --- Test Readiness Tests ---
+
+func TestTestReadiness_NoTests(t *testing.T) {
+	input := ModuleInput{
+		RootDir: "/fake",
+		Files: []FileEntry{
+			{Path: "main.go", AbsPath: "/fake/main.go", Size: 500},
+			{Path: "util.go", AbsPath: "/fake/util.go", Size: 300},
+		},
+	}
+
+	result := RunTestReadiness(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "no-tests" && f.Severity == SeverityFail {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'no-tests' FAIL finding")
+	}
+}
+
+func TestTestReadiness_WithTests(t *testing.T) {
+	input := ModuleInput{
+		RootDir: "/fake",
+		Files: []FileEntry{
+			{Path: "main.go", AbsPath: "/fake/main.go", Size: 500},
+			{Path: "main_test.go", AbsPath: "/fake/main_test.go", Size: 400},
+		},
+	}
+
+	result := RunTestReadiness(input)
+	for _, f := range result.Findings {
+		if f.Rule == "no-tests" {
+			t.Error("should NOT report 'no-tests' when test files exist")
+		}
+	}
+}
+
+func TestTestReadiness_EmptyTestFile(t *testing.T) {
+	input := ModuleInput{
+		RootDir: "/fake",
+		Files: []FileEntry{
+			{Path: "main.go", AbsPath: "/fake/main.go", Size: 500},
+			{Path: "main_test.go", AbsPath: "/fake/main_test.go", Size: 10}, // tiny = empty stub
+		},
+	}
+
+	result := RunTestReadiness(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "empty-tests" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'empty-tests' finding for tiny test file")
+	}
+}
+
+// --- Code Quality Tests ---
+
+func TestCodeQuality_DetectsTODOs(t *testing.T) {
+	dir := t.TempDir()
+	writeTestFile(t, dir, "main.go", `package main
+
+// TODO: implement this
+func main() {
+    // FIXME: broken
+    // HACK: temporary
+}
+`)
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: "main.go", AbsPath: filepath.Join(dir, "main.go"), Size: 100},
+		},
+	}
+
+	result := RunCodeQuality(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "todo-markers" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'todo-markers' finding")
+	}
+}
+
+func TestCodeQuality_DetectsLongFile(t *testing.T) {
+	dir := t.TempDir()
+	// Generate a 600-line file
+	var lines []string
+	for i := 0; i < 600; i++ {
+		lines = append(lines, fmt.Sprintf("var x%d = %d", i, i))
+	}
+	writeTestFile(t, dir, "big.go", "package main\n"+strings.Join(lines, "\n"))
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: "big.go", AbsPath: filepath.Join(dir, "big.go"), Size: 10000},
+		},
+	}
+
+	result := RunCodeQuality(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "long-file" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'long-file' finding for 600-line file")
+	}
+}
+
+func TestCodeQuality_DetectsDuplicates(t *testing.T) {
+	dir := t.TempDir()
+	content := "package main\n\n// This is a deliberately long duplicate file content string that exceeds the 100 byte minimum threshold for hash-based duplicate detection in the code quality module.\nfunc helper() string { return \"duplicate\" }\n"
+	writeTestFile(t, dir, "a.go", content)
+	writeTestFile(t, dir, "b.go", content)
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: "a.go", AbsPath: filepath.Join(dir, "a.go"), Size: int64(len(content))},
+			{Path: "b.go", AbsPath: filepath.Join(dir, "b.go"), Size: int64(len(content))},
+		},
+	}
+
+	result := RunCodeQuality(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "duplicate-files" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'duplicate-files' finding")
+	}
+}
+
+func TestCodeQuality_ContextRot(t *testing.T) {
+	dir := t.TempDir()
+	// Reference a file that doesn't exist
+	writeTestFile(t, dir, ".cursorrules", `You are an AI assistant.
+Always refer to ./src/main.go for the entry point.
+Check ./lib/utils.ts for helpers.
+`)
+
+	input := ModuleInput{
+		RootDir: dir,
+		Files: []FileEntry{
+			{Path: ".cursorrules", AbsPath: filepath.Join(dir, ".cursorrules"), Size: 100},
+		},
+	}
+
+	result := RunCodeQuality(input)
+	found := false
+	for _, f := range result.Findings {
+		if f.Rule == "ai-context-rot" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected 'ai-context-rot' finding for broken file references")
 	}
 }
 
